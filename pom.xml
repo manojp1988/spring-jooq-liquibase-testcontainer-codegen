@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.10</version>
+    <relativePath/> <!-- lookup parent from repository -->
+  </parent>
+  <groupId>com.example</groupId>
+  <artifactId>spring-jooq-liquibase</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>spring-jooq-liquibase</name>
+  <description>spring-jooq-liquibase</description>
+  <url/>
+  <licenses>
+    <license/>
+  </licenses>
+  <developers>
+    <developer/>
+  </developers>
+  <scm>
+    <connection/>
+    <developerConnection/>
+    <tag/>
+    <url/>
+  </scm>
+  <properties>
+    <java.version>25</java.version>
+    <testcontainers.version>1.21.4</testcontainers.version>
+    <testcontainers-jooq-codegen-maven-plugin.version>1.0.0</testcontainers-jooq-codegen-maven-plugin.version>
+    <jooq.version>3.20.11</jooq.version>
+    <postgresql.version>42.6.0</postgresql.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jooq</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>dev.sivalabs</groupId>
+        <artifactId>testcontainers-jooq-codegen-maven-plugin</artifactId>
+        <version>${testcontainers-jooq-codegen-maven-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>generate-jooq-sources</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <database>
+                <type>POSTGRES</type>
+                <containerImage>postgres:16-alpine</containerImage>
+              </database>
+              <liquibase>
+                <changeLogPath>common-master-changelog.xml</changeLogPath>
+                <changeLogDirectory>src/main/resources/db</changeLogDirectory>
+              </liquibase>
+              <jooq>
+                <generator>
+                  <database>
+                    <name>org.jooq.meta.postgres.PostgresDatabase</name>
+                    <includeSystemSequences>true</includeSystemSequences>
+                    <includes>
+                      public.*
+                      | tds.*
+                      | thirty4ab.*
+                      | staging.*
+                    </includes>
+                    <excludes>
+                      public.databasechangelog
+                      | public.databasechangeloglock
+                      | public.pgp_.*
+                      | public.armor.*
+                      | public.dearmor.*
+                      | public.Hmac.*
+                      | public.gen_salt.*
+                      | tds.deductee_master_.*
+                      | tds.transaction_detail_.*
+                      | tds.provision_detail_.*
+                      | tds.zero_transactions_.*
+                      | thirty4ab.challan_detail_.*
+                      | thirty4ab.deductee_detail_.*
+                      | thirty4ab.deductee_.*
+                      | thirty4ab.ledger_.*
+                      | thirty4ab.salary_actuals_.*
+                      | thirty4ab.salary_details_.*
+                      | thirty4ab.vendor_.*
+                      | staging.ext_ledger_.*
+                      | staging.ext_transaction_.*
+                      | staging.provision_detail_.*
+                      | staging.transaction_detail_.*
+                      | staging.writercorp_transaction_.*
+                    </excludes>
+                    <schemata>
+                      <schema>
+                        <inputSchema>public</inputSchema>
+                      </schema>
+                      <schema>
+                        <inputSchema>tds</inputSchema>
+                      </schema>
+                      <schema>
+                        <inputSchema>govt</inputSchema>
+                      </schema>
+                      <schema>
+                        <inputSchema>correction</inputSchema>
+                      </schema>
+                      <schema>
+                        <inputSchema>thirty4ab</inputSchema>
+                      </schema>
+                      <schema>
+                        <inputSchema>staging</inputSchema>
+                      </schema>
+                    </schemata>
+                  </database>
+                  <target>
+                    <packageName>com.fastfacts.jooq.generated</packageName>
+                    <directory>target/generated-sources/jooq</directory>
+                  </target>
+                </generator>
+              </jooq>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
